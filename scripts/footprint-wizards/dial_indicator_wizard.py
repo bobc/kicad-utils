@@ -22,7 +22,7 @@ import sys
 import math
 
 import pcbnew
-import HelpfulFootprintWizardPlugin as HFPW
+import FootprintWizardBase
 import PadArray as PA
 
 def rotate_about(center, p, theta):
@@ -34,7 +34,7 @@ def rotate_about(center, p, theta):
 
     return pcbnew.wxPoint(center.x+x2, center.y+y2)
 
-class dial_indicator_wizard(HFPW.HelpfulFootprintWizardPlugin):
+class dial_indicator_wizard(FootprintWizardBase.FootprintWizard):
 
     def GetName(self):
         return "Dial indicator"
@@ -44,63 +44,54 @@ class dial_indicator_wizard(HFPW.HelpfulFootprintWizardPlugin):
 
     def GenerateParameterList(self):
 
-        self.AddParam("Dial", "angle", self.uNatural, 270)
-        self.AddParam("Dial", "offset angle", self.uNatural, 0)
+        self.AddParam("Dial", "angle", self.uDegrees, 270, min_value=1, max_value=360)
+        self.AddParam("Dial", "offset angle", self.uDegrees, 0, min_value=-180, max_value=180)
         self.AddParam("Dial", "radius", self.uMM, 6)
         self.AddParam("Dial", "inner arc", self.uBool, 1)
         self.AddParam("Dial", "outer arc", self.uBool, 0)
 
         self.AddParam("Ticks", "show ticks", self.uBool, 1)
-        self.AddParam("Ticks", "number of divisions", self.uNatural, 10)
+        self.AddParam("Ticks", "number of divisions", self.uInteger, 10, min_value=1)
         self.AddParam("Ticks", "tick length", self.uMM, 1)
 
         self.AddParam("Labels", "show labels", self.uBool, 1)
-        self.AddParam("Labels", "min", self.uNatural, 0)
-        self.AddParam("Labels", "step", self.uNatural, 1)
-        
+        self.AddParam("Labels", "min", self.uInteger, 0)
+        self.AddParam("Labels", "step", self.uInteger, 1)
+
 
     def CheckParameters(self):
 
-        self.CheckParamInt("Dial", "*angle", min_value=1, max_value=360)
-        self.CheckParamInt("Dial", "*offset angle", min_value=-180, max_value=180)
-        self.CheckParamBool("Dial", "*inner arc")
-        self.CheckParamBool("Dial", "*outer arc")
-
-        self.CheckParamBool("Ticks", "*show ticks")
-        self.CheckParamInt("Ticks", "*number of divisions", min_value=1)
-
-        self.CheckParamBool("Labels", "*show labels")
-
+        pass
 
     def GetValue(self):
-        
+
         return "indicator"
 
-    
+
     def BuildThisFootprint(self):
 
         dial_params = self.parameters['Dial']
-        dial_angle = dial_params['*angle']
-        dial_offset_angle = dial_params['*offset angle']
+        dial_angle = dial_params['angle']
+        dial_offset_angle = dial_params['offset angle']
         dial_radius = dial_params['radius']
-        dial_inner_arc = dial_params['*inner arc']
-        dial_outer_arc = dial_params['*outer arc']
-        
+        dial_inner_arc = dial_params['inner arc']
+        dial_outer_arc = dial_params['outer arc']
+
         tick_params = self.parameters ['Ticks']
-        tick_show = tick_params['*show ticks']
-        tick_num_divisions = tick_params['*number of divisions']
+        tick_show = tick_params['show ticks']
+        tick_num_divisions = tick_params['number of divisions']
         tick_length = tick_params['tick length']
 
         label_params = self.parameters ['Labels']
-        label_show = label_params['*show labels']
-        label_min = label_params['*min']
-        label_step = label_params['*step']
+        label_show = label_params['show labels']
+        label_min = label_params['min']
+        label_step = label_params['step']
 
         text_size = self.GetTextSize()  # IPC nominal
         thickness = self.GetTextThickness()
         # self.draw.GetLineTickness())
         textposy = self.GetTextSize()
-         
+
         self.draw.Value( 0, textposy, text_size )
         self.draw.Reference( 0, -textposy, text_size )
 
