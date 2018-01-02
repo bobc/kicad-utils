@@ -19,11 +19,11 @@ import sys
 import math
 
 import pcbnew
-import HelpfulFootprintWizardPlugin as HFPW
+import FootprintWizardBase
 import PadArray as PA
 
 
-class contact_wizard(HFPW.HelpfulFootprintWizardPlugin):
+class contact_wizard(FootprintWizardBase.FootprintWizard):
 
     def GetName(self):
         return "Button Contact"
@@ -33,14 +33,14 @@ class contact_wizard(HFPW.HelpfulFootprintWizardPlugin):
 
     def GenerateParameterList(self):
 
-        self.AddParam("Pads", "style", self.uNatural, 1)
+        self.AddParam("Pads", "style", self.uInteger, 1, min_value=1, max_value=2)
         self.AddParam("Pads", "trace width", self.uMM, 0.2)
         self.AddParam("Pads", "trace clearance", self.uMM, 0.2)
         self.AddParam("Pads", "diameter", self.uMM, 5)
 
     def CheckParameters(self):
 
-        self.CheckParamInt("Pads", "*style", min_value=1, max_value=2)
+        pass
 
     def GetValue(self):
         
@@ -188,7 +188,7 @@ class contact_wizard(HFPW.HelpfulFootprintWizardPlugin):
 
         prm = self.parameters['Pads']
         p_diameter = prm['diameter'];
-        p_style = prm['*style']
+        p_style = prm['style']
          
         if p_style == 1:
             self.square_contact()
