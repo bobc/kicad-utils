@@ -61,7 +61,7 @@ def pcbfunc(Filename = None):
     for module in my_board.GetModules():
         f.write ("%s \"%s\" %s %1.3f %1.3f %1.3f %s %s" % ( module.GetReference(), 
                                     module.GetValue(),
-                                    module.GetFPID().GetFootprintName(),
+                                    module.GetFPID().GetLibItemName(),
                                     pcbnew.ToMM(module.GetPosition().x - origin.x),
                                     pcbnew.ToMM(-module.GetPosition().y + origin.y),
                                     module.GetOrientation() / 10.0,
