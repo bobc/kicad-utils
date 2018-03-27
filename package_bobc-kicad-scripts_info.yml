@@ -1,0 +1,13 @@
+bobc-kicad-scripts:
+  description: Footprint wizards
+  packages:
+  - content:
+    - cache: 'no'
+      checksum: SHA-256:36ee992feb4bb9283ae03b6168c3c46ae5b6797ec4e9954a529340b2775071ef
+      filter: scripts-1.0.0.zip/scripts/footprint-wizards/*.*
+      name: footprint-wizard
+      size: 8781
+      type: script
+      url: https://raw.githubusercontent.com/bobc/kicad-utils/v5/scripts-1.0.0.zip
+    version: 1.0.0
+  publisher: bobc
