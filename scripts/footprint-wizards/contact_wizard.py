@@ -96,7 +96,7 @@ class contact_wizard(FootprintWizardBase.FootprintWizard):
         pad.GetParent().Add(pad)
 
         # 
-        body_radius = (p_diameter + self.draw.GetLineTickness())
+        body_radius = (p_diameter + self.draw.GetLineThickness())
         self.draw.Box(0,0,body_radius, body_radius)
 
     def round_contact(self):
@@ -181,7 +181,7 @@ class contact_wizard(FootprintWizardBase.FootprintWizard):
                 pad.GetParent().Add(pad)
         
         # circle on silkscreen
-        body_radius = (p_diameter/2 + p_trace_width/2 + self.draw.GetLineTickness())
+        body_radius = (p_diameter/2 + p_trace_width/2 + self.draw.GetLineThickness())
         self.draw.Circle(0, 0, body_radius)
     
     def BuildThisFootprint(self):
@@ -197,8 +197,8 @@ class contact_wizard(FootprintWizardBase.FootprintWizard):
 
         text_size = self.GetTextSize()  # IPC nominal
         thickness = self.GetTextThickness()
-        body_radius = (p_diameter/2 + self.draw.GetLineTickness())
-        textposy = body_radius + self.draw.GetLineTickness()/2 + self.GetTextSize()/2 + thickness
+        body_radius = (p_diameter/2 + self.draw.GetLineThickness())
+        textposy = body_radius + self.draw.GetLineThickness()/2 + self.GetTextSize()/2 + thickness
         self.draw.Value( 0, textposy, text_size )
         self.draw.Reference( 0, -textposy, text_size )
 
