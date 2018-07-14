@@ -7,6 +7,11 @@
 
 Usage:    See -h
 
+1. Start a command prompt or terminal window
+2. Run the script with
+       python add_pilot.py <drill file> <gerber file>
+3. The output is written to <gerber file>_merge.gbr
+
 Authors:  Bob Cousins
 
 License:  GPL 3.0
@@ -20,7 +25,7 @@ __copyright__ = 'Copyright 2018 Bob Cousins'
 __license__ = 'GPL 3.0'
 __version__ = '0.1.0'
 
-appname = "bump_version"
+appname = "add_pilot"
 
 #imports
 import os
