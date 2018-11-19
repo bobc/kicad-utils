@@ -41,6 +41,8 @@ from str_utils import before, after
 import file_util
 
 pilot_size = 0.3 # mm
+pilot_ring_size = 0.2 # mm
+
 def read_config (path):
     with open(path) as f:
         config = f.read().split('\n')
@@ -51,12 +53,13 @@ def write_config (path, config):
     with open(path, "w") as f:
         f.write('\n'.join(config))
 
-def add_pilot_holes (drill, gerber):
+def add_pilot_holes (drill_PTH, drill_NPTH, gerber):
     
+# plated holes
     if args.verbose:
-        print ("reading drill file %s" % drill)
+        print ("reading PTH drill file %s" % drill_PTH)
 
-    drill_data = read_config (drill)
+    drill_data = read_config (drill_PTH)
 
     holes = []
 
@@ -82,7 +85,35 @@ def add_pilot_holes (drill, gerber):
                 print ("drill at %f, %f mm" % (hole.x, hole.y))
 
     #print holes
+    # non-plated holes
+    if args.verbose:
+        print ("reading PTH drill file %s" % drill_NPTH)
 
+    drill_data = read_config (drill_NPTH)
+
+    holesNPTH = []
+
+    seen_start = False
+    conv = 25.4
+    for line in drill_data:
+        if line.startswith ("%"):
+            seen_start = True
+        elif line.startswith ("INCH"):
+            conv = 25.4
+        elif line.startswith ("METRIC"):
+            conv = 1
+
+        elif seen_start and line.startswith ("X"):
+            token = before (line, "Y")
+            token = after (token, "X")
+            x = float(token) * conv
+            y = float(after (line, "Y")) * conv
+
+            hole = geometry2d.Point (x,y)
+            holesNPTH.append (hole)
+    if args.verbose:
+        print ("drill at %f, %f mm" % (hole.x, hole.y))
+        #print holesNPTH
     if args.verbose:
         print ("reading gerber file %s" % gerber)
 
@@ -101,7 +132,8 @@ def add_pilot_holes (drill, gerber):
             num = re.findall (r"\d+", line)
             if num:
                 aperture_num = max (int(num[0]), aperture_num)
-
+                aperture_num_NPTH = aperture_num + 1
+                aperture_num_PTH = aperture_num_NPTH + 1
             output_data.append (line)
 
         elif line.startswith ("%FS"):
@@ -121,20 +153,40 @@ def add_pilot_holes (drill, gerber):
             output_data.append (line)
 
         elif line == "M02*":
+            ring_dia = pilot_size+pilot_ring_size+pilot_ring_size * conv
+            output_data.append ("G04 Draw NPTH pilot hole rings")
+
+            output_data.append ("G04 #@! TA.AperFunction,ComponentPad*")
+            output_data.append ("%%ADD%dC,%8.6f*%%" % (aperture_num_NPTH, ring_dia))
+            output_data.append ("G04 #@! TD*")
             output_data.append ("G04 Draw pilot holes *")
-            aperture_num += 1
-            output_data.append ("%%ADD%dC,%8.6f*%%" % (aperture_num, pilot_size * conv))
-            output_data.append ("%LPC*%")
-            output_data.append ("D%d*" % aperture_num)
-
+            output_data.append ("%%ADD%dC,%8.6f*%%" % (aperture_num_PTH, pilot_size * conv))
+            output_data.append ("D%d*" % aperture_num_NPTH)
+            output_data.append ("G04 #@! TD*")
             format_str = "%%%d.%df" % (format[0], format[1])
+            for hole in holesNPTH:
+                x_val = format_str % hole.x
+                x_val = x_val.replace (".", "")
+                y_val = format_str % hole.y
+                y_val = y_val.replace (".", "")
+               # output_data.append ("G04 #@! TO.N,N/C*")
+                output_data.append ("X%sY%sD03*" % (x_val, y_val))
 
+            output_data.append ("D%d*" % aperture_num_PTH)
+            format_str = "%%%d.%df" % (format[0], format[1])
+            output_data.append ("%LPC*%")
             for hole in holes:
                 x_val = format_str % hole.x
                 x_val = x_val.replace (".", "")
                 y_val = format_str % hole.y
                 y_val = y_val.replace (".", "")
+                output_data.append ("X%sY%sD03*" % (x_val, y_val))
 
+            for hole in holesNPTH:
+                x_val = format_str % hole.x
+                x_val = x_val.replace (".", "")
+                y_val = format_str % hole.y
+                y_val = y_val.replace (".", "")
                 output_data.append ("X%sY%sD03*" % (x_val, y_val))
 
             output_data.append ("%LPD*%")
@@ -154,7 +206,8 @@ def main():
     global args
 
     parser = argparse.ArgumentParser(description="Add pilot holes to a Gerber layer")
-    parser.add_argument("drill_file",     help="NC Drill file", nargs='?')
+    parser.add_argument("drill_file_PTH",     help="NC Drill file, PTH", nargs='?')
+    parser.add_argument("drill_file_NPTH",     help="NC Drill file, NPTH", nargs='?')
     parser.add_argument("gerber_file",     help="Gerber layer file to work on", nargs='?')
 
     parser.add_argument("-v", "--verbose",  help="enable verbose output", action="store_true")
@@ -163,8 +216,8 @@ def main():
     args = parser.parse_args()
 
     # print ("%s %s" % (appname, __version__))
-    if args.drill_file and args.gerber_file:
-        add_pilot_holes (args.drill_file, args.gerber_file)
+    if args.drill_file_PTH and args.drill_file_NPTH and args.gerber_file:
+        add_pilot_holes (args.drill_file_PTH, args.drill_file_NPTH, args.gerber_file)
     else:
         parser.print_usage()
 
