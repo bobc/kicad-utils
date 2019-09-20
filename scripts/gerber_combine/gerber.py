@@ -27,31 +27,34 @@ class Gerber:
 
         self.format = [6,4]
         self.conv = 1 # assume mm
+
+        # start with the header
         state = s_header
         attributes = []
         for line in gerber_data:
             if state == s_header:
-                self.header.append (line)
-                if line.startswith ("G01"):
+
+                if line.startswith ("G04 APERTURE LIST"):
                     state = s_apertures
+                else:
+                    self.header.append (line)
+                    if line.startswith ("%FS"):
+                        # %FSLAX46Y46*%
+                        num = re.findall (r"\d+", line)
+                        if num:
+                            x = int(num[0])
+                            self.format = [x//10, x % 10]
 
-                elif line.startswith ("%FS"):
-                    # %FSLAX46Y46*%
-                    num = re.findall (r"\d+", line)
-                    if num:
-                        x = int(num[0])
-                        self.format = [x//10, x % 10]
+                    elif line.startswith ("%MOIN"):
+                        self.conv = 25.4
 
-                elif line.startswith ("%MOIN"):
-                    self.conv = 25.4
-
-                elif line.startswith ("%MOMM"):
-                    self.conv = 1
+                    elif line.startswith ("%MOMM"):
+                        self.conv = 1
 
 
             elif state == s_apertures:
-                if line.startswith ("D"):
-                    self.commands.append (line)
+                if line.startswith ("G04 APERTURE END LIST"):
+                    #self.commands.append (line)
                     state = s_body
                 elif line.startswith ("%ADD"):
                     # %ADD14C
@@ -80,6 +83,8 @@ class Gerber:
     def write_file (self, filename):
         output_data = []
         output_data.extend (self.header)
+
+        output_data.append("G04 APERTURE LIST*")
         for num, desc, attribs, old_num in self.apertures:
             if attribs:
                 for attrib in attribs:
@@ -93,7 +98,10 @@ class Gerber:
             if attribs:
                 output_data.append ("G04 #@! TD*")
 
+        output_data.append("G04 APERTURE END LIST*")
+
         output_data.extend (self.commands)
+
         output_data.append ("M02*\n")
 
         with open(filename, "w") as f:
