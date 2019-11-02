@@ -1,0 +1,45 @@
+
+/* KiCad v6 S-expression syntax for schematic and symbol files */
+
+/* Note: whitespace and comment lines are ignored */
+
+S-Expression ::= '(' Keyword ( Parameter )* ')'
+
+Parameter ::= S-Expression | String | Number
+
+/* Strictly speaking, keywords must be one of known identifiers e.g.
+  anchor        |
+  value         |
+  footprint     |
+  model         |
+  keywords      |
+  alternates    |
+  property      |
+  property_del  |
+  pin           |
+  pin_merge     |
+  pin_swap      |
+  pin_renum     |
+  pin_rename    |
+  route_pin_swap |
+  polyline      |
+  line          |
+  rectangle     |
+  circle        |
+  arc           |
+  bezier        |
+  text
+*/
+Keyword ::= [a-z][a-z_]*
+
+Number ::= '-'? [0-9.]+
+
+/* TODO: Strings may contain escaped characters */
+String ::= '"' [^"#xA]  '"'
+
+
+
+Comment ::= WSP* '#' .* 'EOL'
+
+WSP ::= [ \n\r\t\x00]
+
